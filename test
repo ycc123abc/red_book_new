@@ -1,0 +1,63 @@
+import requests
+import json
+
+
+headers = {
+    "accept": "application/json, text/plain, */*",
+    "accept-language": "zh-CN,zh;q=0.9",
+    "content-type": "application/json;charset=UTF-8",
+    "origin": "https://www.xiaohongshu.com",
+    "priority": "u=1, i",
+    "referer": "https://www.xiaohongshu.com/",
+    "sec-ch-ua": "\"Chromium\";v=\"140\", \"Not=A?Brand\";v=\"24\", \"Google Chrome\";v=\"140\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-site",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+    "x-b3-traceid": "8e00ca1d426eedef",
+    "x-s": "XYS_2UQhPsHCH0c1Pjh9HjIj2erjwjQhyoPTqBPT49pjHjIj2eHjwjQgynEDJ74AHjIj2ePjwjQTJdPIPAZlg98yGLTlqMQFGDMcy9Rkq9M1LjR9pFMH+Bbw+LMawepnJn4x2bSxzFDUyfEf+7iF8BFUp7pa+FWFcdkGLgSI+bpsyDSoJ/Z9zeplLSkMqrMp/Dz+adpHLnp1+dQp49pNPrTEpeqEydW9JFbQ2Du74pzLNFRmPrkHaMY/4eYPzpL7Pbz+c9EIqMQCLDkcpnbLP9lH8LT/Jfznnfl0yLLIaSQQyAmOarGROaHVHdWFH0ijJ9Qx8n+FHdF=",
+    "x-s-common": "2UQAPsHC+aIjqArjwjHjNsQhPsHCH0rjNsQhPaHCH0c1Pjh9HjIj2eHjwjQgynEDJ74AHjIj2ePjwjQhyoPTqBPT49pjHjIj2ecjwjHFN0W9N0ZjNsQh+aHCH0rEGnHF+0H7+0YDGfE6q7zM2gSl4nk120bx+n8Eqdch8n4T8dQUq0b1+/ZIPeZF+eZ7+0cjNsQh+jHCHjHVHdW7H0ijHjIj2eWjwjQQPAYUaBzdq9k6qB4Q4fpA8b878FSet9RQzLlTcSiM8/+n4MYP8F8LagY/P9Ql4FpUzfpS2BcI8nT1GFbC/L88JdbFyrSiafp/cDMra7pFLDDAa7+8J7QgabmFz7Qjp0mcwp4fanD68p40+fp8qgzELLbILrDA+9p3JpH9LLI3+LSk+d+DJfRSL98lnLYl49IUqgcMc0mrJFShtMmozBD6qM8FyFSh8o+h4g4U+obFyLSi4nbQz/+SPFlnPrDApSzQcA4SPopFJeQmzBMA/o8Szb+NqM+c4ApQzg8Ayp8FaDRl4AYs4g4fLomD8pzBpFRQ2ezLanSM+Skc47Qc4gcMag8VGLlj87PAqgzhagYSqAbn4FYQy7pTanTQ2npx87+8NM4L89L78p+l4BL6ze4AzB+IygmS8Bp8qDzFaLP98Lzn4AQQzLEAL7bFJBEVL7pwyS8Fag868nTl4e+0n04ApfuF8FSbL7SQyrpEtASrpLS92dDFa/YOanS0+Mkc4FbQ4fSe+Bu6qFzP8oP9Lo4naLP78p+D+9LI8LFFaLp98/8+yLMFpd4panSDqA+AN7+hnDESyp8FGf+p8np8pd4iag8Vwoi6cnpD4g4p/BEmq98l4FQQ2BlFagYyL9RM4FRdpd4Iq7HFyBppN9L9/o8Szbm7zDS987PlqfRAPLzyyLSk+7+xGfRAP94UzDSbPBLALoz9anSjLDRl4FROqgziagYSq7Yc4A4QyrbSpSmFyrSiN7+8qgz/z7b72nMc4FzQ4DS3a/+Q4ezYzMPFnaRSygpFyDSkJgQQzLRALM8F2DQ6zDF6wg8Sy0Sy4DSkzLEo4gzCqdpFJrS94fLALozp/7mN8nS0/d+kagkSanYdqA86+d+L4gzANM87qLDAcnLIqg4ianTd8/8A4LlQc9zSng+98n8c4rMQPA4Apdp74nMYarTQyMbFagYO8nky+d+LNA4AnLr98LzM47mQyb+3ag8kJrkM4omQ2rpVanD6q9T02DMCqFkSp7pFGDSbGAQI4gclLpqROaHVHdWEH0ilPAZh+0PF+0PFNsQhP/Zjw0ZVHdWlPaHCHfE6qfMYJsQR",
+    "x-t": "1763965107615",
+    "x-xray-traceid": "cd5a41bebdfa3a19932522c8ab027b72",
+    "xy-direction": "40"
+}
+cookies = {
+    "abRequestId": "9f029439-8c95-5463-a15b-48bd5bf64748",
+    "webBuild": "4.86.0",
+    "xsecappid": "xhs-pc-web",
+    "a1": "19ab462768dbnostuyyqujnz1j5fyrt8egmfrrr1n50000440764",
+    "webId": "401ec8f68cc5bc61d5d759d23190de90",
+    "web_session": "030037ae10a432a6a4da0ab65b2e4aa168d989",
+    "gid": "yj0D4KJ0q2dKyj0D4KJWKkFFYfDIlM97vvA76yIVIuyV2i28ivF9YF888448WK488SKiKy8f",
+    "acw_tc": "0a0b101317639647497592558e90cbe2de5751b541a42e648b0960453e6315",
+    "loadts": "1763965095323",
+    "websectiga": "8886be45f388a1ee7bf611a69f3e174cae48f1ea02c0f8ec3256031b8be9c7ee",
+    "sec_poison_id": "a5f11d61-5cf1-44fa-a846-d29d7648c94f",
+    "unread": "{%22ub%22:%226916d38e000000000402889d%22%2C%22ue%22:%22690d6e1700000000040229be%22%2C%22uc%22:22}"
+}
+url = "https://edith.xiaohongshu.com/api/sns/web/v1/homefeed"
+data = {
+    "cursor_score": "",
+    "num": 39,
+    "refresh_type": 1,
+    "note_index": 30,
+    "unread_begin_note_id": "",
+    "unread_end_note_id": "",
+    "unread_note_count": 0,
+    "category": "homefeed_recommend",
+    "search_key": "",
+    "need_num": 14,
+    "image_formats": [
+        "jpg",
+        "webp",
+        "avif"
+    ],
+    "need_filter_image": False
+}
+data = json.dumps(data, separators=(',', ':'))
+response = requests.post(url, headers=headers, cookies=cookies, data=data)
+
+print(response.text)
+print(response)
