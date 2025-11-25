@@ -25,6 +25,8 @@ function b64Encode(e) {
 function stringToMD5(input) {
     return crypto.createHash('md5').update(input, 'utf8').digest('hex');
 }
+e='/api/sns/web/v1/homefeed'
+
 
 function seccore_signv2(e, a) {
     var c=e+JSON.stringify(a);
@@ -35,13 +37,12 @@ function seccore_signv2(e, a) {
         x1: "xhs-pc-web",
         x2: "window",
         x3: s,
-        x4: "obhject"
+        x4: "object"
     };
     return "XYS_" + b64Encode(encodeUtf8(JSON.stringify(f)))
         }
 
 
-e='/api/sns/web/v1/homefeed'
 s={
     "cursor_score": "1.7639723078830085E9",
     "num": 39,
