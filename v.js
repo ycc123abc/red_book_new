@@ -1,128 +1,329 @@
 
-function monitorObject(obj, name) {
-    return new Proxy(obj, {
+!(function(){
+    const $toString = Function.prototype.toString;
+    const symbol = Symbol();    // 独一无二的属性
+    const myToString = function (){
+        return typeof this === 'function' && this[symbol] || $toString.call(this);
+    }
+    function safeFunction(func, key, value){
+        Object.defineProperty(func, key, {
+            enumerable: false,
+            configurable: true,
+            writable: true,
+            value: value,
+        })
+    };
+    delete Function.prototype.toString;
+    safeFunction(Function.prototype, "toString", myToString);
+    safeFunction(Function.prototype.toString, symbol, 'function toString() { [native code] }');
+    globalThis.safeFunction = function(func, funcname){
+        safeFunction(func, symbol, `function ${funcname || func.name || ''}() { [native code] }`);
+    }
+ 
+ 
+})();
+function obj_toString(obj, name) {
+    Object.defineProperty(obj, Symbol.toStringTag, {
+        value: name,
+    });
+}   // 主要就是过toString()检测
+ 
+function watch(obj, obj_name) {
+    // 如果 obj 是 undefined 或 null，返回原值
+    if (obj === undefined || obj === null) {
+        console.log(`警告: "${obj_name}" 是 ${obj === null ? 'null' : 'undefined'}，跳过代理`);
+        return obj;
+    }
+ 
+    // 如果不是对象类型（包括函数），也返回原值
+    if (typeof obj !== 'object' && typeof obj !== 'function') {
+        console.log(`警告: "${obj_name}" 不是对象或函数类型，而是 ${typeof obj}，跳过代理`);
+        return obj;
+    }
+ 
+    const handler = {
         get(target, property, receiver) {
-            console.log(`方法: get   对象: ${name}   属性: ${String(property)}   属性类型: ${typeof property}   属性值类型: ${typeof target[property]}`);
-            return target[property];
+            if (property==='toJSON'){
+                return target[property];
+            }
+            console.log(
+                `方法: get  | 对象: "${obj_name}" | 属性: ${typeof property === 'symbol' ? property.toString() : property} | 属性类型: ${typeof property} | 属性值类型: ${typeof target[property]}`
+            );
+            return Reflect.get(target, property, receiver);
         },
         set(target, property, value, receiver) {
-            console.log(`方法: set   对象: ${name}   属性: ${String(property)}   属性类型: ${typeof property}   属性值类型: ${typeof value}`);
-            return Reflect.set(...arguments);
+            console.log(
+                `方法: set  | 对象: "${obj_name}" | 属性: ${typeof property === 'symbol' ? property.toString() : property} | 属性类型: ${typeof property} | 属性值类型: ${typeof value}`
+            );
+            return Reflect.set(target, property, value, receiver);
+        },
+        has(target, property) {
+            console.log(
+                `方法: has  | 对象: "${obj_name}" | 属性: ${typeof property === 'symbol' ? property.toString() : property} | 属性类型: ${typeof property} | 检查自身或原型链属性是否存在`
+            );
+            return Reflect.has(target, property);
+        },
+        ownKeys(target) {
+            console.log(
+                `方法: ownKeys  | 对象: "${obj_name}" | 获取自身可枚举属性键`
+            );
+            return Reflect.ownKeys(target);
+        },
+        getOwnPropertyDescriptor(target, property) {
+            console.log(
+                `方法: getOwnPropertyDescriptor  | 对象: "${obj_name}" | 属性: ${typeof property === 'symbol' ? property.toString() : property} | 属性类型: ${typeof property} | 获取属性描述符`
+            );
+            return Reflect.getOwnPropertyDescriptor(target, property);
+        },
+        defineProperty(target, property, descriptor) {
+            console.log(
+                `方法: defineProperty  | 对象: "${obj_name}" | 属性: ${typeof property === 'symbol' ? property.toString() : property} | 属性类型: ${typeof property} | 定义或修改属性描述符: ${JSON.stringify(descriptor)}`
+            );
+            return Reflect.defineProperty(target, property, descriptor);
+        },
+        deleteProperty(target, property) {
+            console.log(
+                `方法: deleteProperty  | 对象: "${obj_name}" | 属性: ${typeof property === 'symbol' ? property.toString() : property} | 属性类型: ${typeof property} | 删除属性`
+            );
+            return Reflect.deleteProperty(target, property);
+        },
+        getPrototypeOf(target) {
+            console.log(
+                `方法: getPrototypeOf  | 对象: "${obj_name}" | 获取原型链`
+            );
+            return Reflect.getPrototypeOf(target);
+        },
+        setPrototypeOf(target, proto) {
+            console.log(
+                `方法: setPrototypeOf  | 对象: "${obj_name}" | 设置新原型: ${proto ? proto.constructor.name : 'null'}`
+            );
+            return Reflect.setPrototypeOf(target, proto);
+        },
+        // 为函数添加 apply 和 construct 处理器
+        apply(target, thisArg, argumentsList) {
+            console.log(
+                `方法: apply  | 对象: "${obj_name}" | 函数调用 | 参数数量: ${argumentsList.length}`
+            );
+            return Reflect.apply(target, thisArg, argumentsList);
+        },
+        construct(target, argumentsList, newTarget) {
+            console.log(
+                `方法: construct  | 对象: "${obj_name}" | 构造函数调用 | 参数数量: ${argumentsList.length}`
+            );
+            return Reflect.construct(target, argumentsList, newTarget);
         }
-    });
+    };
+ 
+    return new Proxy(obj, handler);
 }
-
-// ==================== 基础环境设置 ====================
-// 监视 window 对象
-window = globalThis;
+ 
+ 
+ 
+delete __filename;
+delete __dirname;
+ 
+function Window(){}
+window = global;
 window.Buffer = Buffer;
 delete global;
 delete Buffer;
-
-// ==================== 声明所有构造函数（先不挂载） ====================
-// DOM 相关构造函数
-const Element = function(){};
-const HTMLElement = function HTMLElement(){ Element.call(this); };
-HTMLElement.prototype = Object.create(Element.prototype);
-HTMLElement.prototype.constructor = HTMLElement;
-
-const HTMLHtmlElement = function HTMLHtmlElement(){ HTMLElement.call(this); };
-HTMLHtmlElement.prototype = Object.create(HTMLElement.prototype);
-HTMLHtmlElement.prototype.constructor = HTMLHtmlElement;
-
-const HTMLBodyElement = function(){ 
-    this.removeChild = function removeChild(){};
-};
-
-const HTMLAllCollection = function(){ 
-    this.length = 0; 
-};
-
-const HTMLDocument = function(){
-    this.documentElement = new HTMLHtmlElement();
-    this.documentElement.nodeName = 'HTML';
-    this.documentElement.getAttribute = function getAttribute(){};
-};
-
-// XMLHttpRequest 相关
-const XMLHttpRequestEventTarget = function(){};
-
-const XMLHttpRequest = function(){};
-XMLHttpRequest.prototype = Object.create(XMLHttpRequestEventTarget.prototype);
-XMLHttpRequest.prototype.constructor = XMLHttpRequest;
-XMLHttpRequest.prototype.UNSENT = 0;
-XMLHttpRequest.prototype.OPENED = 1;
-XMLHttpRequest.prototype.HEADERS_RECEIVED = 2;
-XMLHttpRequest.prototype.LOADING = 3;
-XMLHttpRequest.prototype.DONE = 4;
-XMLHttpRequest.length = 0;
-XMLHttpRequest.name = "XMLHttpRequest";
-XMLHttpRequest.prototype.open = function open(){};
-XMLHttpRequest.prototype.setRequestHeader= function open(){};
-XMLHttpRequest.prototype.send= function send(){};
-XMLHttpRequest.__proto__ = XMLHttpRequestEventTarget.prototype;
-
-// Navigator 相关
-const Navigator = function (){};
-Navigator.prototype.webdriver = function webdriver(){};
-
-const Permissions = function() {};
-Permissions.prototype.query = function() {
-    return Promise.resolve({ state: 'granted' });
-};
-
-
-
-const Location = function(){
-    this.href = 'https://www.xiaohongshu.com/explore?channel_id=homefeed.fashion_v3'
-}
-const location = new Location();
-
-// ==================== 创建实例对象 ====================
-// Navigator 实例
-const navigator = new Navigator();
-navigator.permissions = new Permissions();
-navigator.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36';
-
-// // Screen 实例
-// const screen = new Screen();
-
-// Document 实例
-const document = new HTMLDocument();
-document.cookie = 'abRequestId=73222252-5044-5b93-bd71-c8640f97e263; a1=199e6120c9bdakveg0pwcm80it5wvyo16dll1ugws50000387948; webId=540a145713eb4c5a43a8d2ba94128dcf; gid=yjjdKyJJ2DKSyjjdKyJ8Sf7kjDf0Thdk8UES1EM6Y8392128Ehvlyy888qYWj4Y8y0y8dDSJ; webBuild=4.84.4; unread={%22ub%22:%22690d894b0000000003039450%22%2C%22ue%22:%22690d946800000000030238df%22%2C%22uc%22:23}; websectiga=7750c37de43b7be9de8ed9ff8ea0e576519e8cd2157322eb972ecb429a7735d4; xsecappid=xhs-pc-web; loadts=1762516210826';
-document.addEventListener = function addEventListener(){};
-document.getElementsByTagName = function(tagName) {
-    const element = { tagName: 'HTML' };
-    return [element];
-};
-document.all = new HTMLAllCollection();
-document.body = new HTMLBodyElement();
-
-// ==================== Window 对象属性补全 ====================
- window.top = window.self = window;
-window.addEventListener = function addEventListener(){};
-window.MouseEvent = function MouseEvent(){};
-window.requestAnimationFrame = function requestAnimationFrame(){ throw new TypeError('Illegal constructor'); };
-window.requestIdleCallback = function requestIdleCallback(){ throw new TypeError('Illegal constructor'); };
-window.chrome = function chrome(){};
-
-// ==================== 统一挂载到 Window 并监视 ====================
-// 挂载构造函数到 window
-window.Element = Element;
-window.HTMLElement = HTMLElement;
-window.HTMLHtmlElement = HTMLHtmlElement;
-window.HTMLBodyElement = HTMLBodyElement;
-window.HTMLAllCollection = HTMLAllCollection;
-window.Document = HTMLDocument;
+window.window = window.top = window.self = window;
+window.requestAnimationFrame = function requestAnimationFrame() {};
+window.requestIdleCallback = function requestIdleCallback() {};
+window.DeviceOrientationEvent = function DeviceOrientationEvent(){};
+window.DeviceMotionEvent = function DeviceMotionEvent(){};
+ 
+function XMLHttpRequest() {}
+XMLHttpRequest.prototype.open = function () {};
+XMLHttpRequest.prototype.send = function () {};
+XMLHttpRequest.prototype.setRequestHeader = function () {};
+XMLHttpRequest.prototype.addEventListener = function () {};
 window.XMLHttpRequest = XMLHttpRequest;
-window.XMLHttpRequestEventTarget = XMLHttpRequestEventTarget;
+window.chrome = {}
+window.xsecappid = 'xhs-pc-web';
+window.loadts = new Date().toString()
+window.addEventListener = function addEventListener(){}
+window.MouseEvent = function MouseEvent(){}
+ 
+safeFunction(window.addEventListener)
+safeFunction(window.MouseEvent)
+ 
+Object.setPrototypeOf(window, Window.prototype)
+// window = watch(window, "window")
+ 
+ 
+function Document(){}
+function Element(){}safeFunction(Element)
+Element.prototype.getAttribute = function getAttribute(){
+ 
+};safeFunction(Element.prototype.getAttribute)
+Element.prototype.removeChild = function removeChild(){
+ 
+};safeFunction(Element.prototype.removeChild)
+function HTMLElement(){
+    Element.call(this)
+};safeFunction(HTMLElement)
+HTMLElement.prototype = Object.create(Element.prototype)
+HTMLElement.prototype.constructor = HTMLElement;
+ 
+window.HTMLElement = HTMLElement;
+function HTMLHtmlElement(){
+    HTMLElement.call(this)
+};safeFunction(HTMLElement)
+HTMLHtmlElement.prototype = Object.create(HTMLElement.prototype)
+HTMLHtmlElement.prototype.constructor = HTMLHtmlElement;
+ 
+ 
+function HTMLCollection(){
+}
+ 
+// 添加一个基本的 iterator 方法
+HTMLCollection.prototype[Symbol.iterator] = function () {
+    return [].values(); // 返回一个空数组的迭代器
+};
+ 
+ 
+Document.prototype.documentElement = new HTMLHtmlElement();
+Document.prototype.getElementsByTagName = function getElementsByTagName(tagName){
+    if (tagName === '*'){
+        return [
+    {"tagName": "html"},
+    {"tagName": "head"},
+    {"tagName": "script"},
+    {"tagName": "meta"},
+    {"tagName": "link"},
+    {"tagName": "style"},
+    {"tagName": "title"},
+    {"tagName": "body"},
+    {"tagName": "div"},
+    {"tagName": "svg"},
+    {"tagName": "defs"},
+    {"tagName": "clippath"},
+    {"tagName": "rect"},
+    {"tagName": "path"},
+    {"tagName": "symbol"},
+    {"tagName": "circle"},
+    {"tagName": "g"},
+    {"tagName": "header"},
+    {"tagName": "a"},
+    {"tagName": "img"},
+    {"tagName": "input"},
+    {"tagName": "use"},
+    {"tagName": "button"},
+    {"tagName": "span"},
+    {"tagName": "ul"},
+    {"tagName": "li"},
+    {"tagName": "picture"},
+    {"tagName": "i"},
+    {"tagName": "p"},
+    {"tagName": "section"},
+    {"tagName": "iframe"}
+]
+    }
+    console.log(`对象 => Document.prototype.getElementsByTagName, 获取元素: ${tagName}`)
+};safeFunction(Document.prototype.getElementsByTagName)
+Document.prototype.addEventListener = function addEventListener(){}
+ 
+function HTMLAllCollection (){
+    this.length = 1181;
+};safeFunction(HTMLAllCollection)
+function HTMLBodyElement (){
+    HTMLElement.call(this)
+};safeFunction(HTMLBodyElement)
+HTMLBodyElement.prototype = Object.create(HTMLElement.prototype)
+HTMLBodyElement.prototype.constructor = HTMLBodyElement;
+Document.prototype.all = new HTMLAllCollection();
+Document.prototype.body = new HTMLBodyElement();
+Document.prototype.cookie = 'abRequestId=77e39326-85d4-52fe-bfa7-574c973e32de; webBuild=4.81.0; xsecappid=xhs-pc-web; a1=199a4276e3dzm8hkqvytulqmxthamjrfggeyqf1d730000310776; webId=761705c911e959313639e1d34e9d6bb7; gid=yjj04JWY8dkWyjj04JWKdkiyqfu6YxTAhv97dfW1A6C9xvq806VFiA888qy8WWK8WjdyJi0d; unread={%22ub%22:%2268d7af2e000000000e0327db%22%2C%22ue%22:%2268c4e00d000000001b030fde%22%2C%22uc%22:23}; loadts=1759663837296; websectiga=2a3d3ea002e7d92b5c9743590ebd24010cf3710ff3af8029153751e41a6af4a3';
+ 
+ 
+safeFunction(Document.prototype.addEventListener)
+function HTMLDocument(){}
+Object.setPrototypeOf(HTMLDocument.prototype, Document.prototype)
+document = new HTMLDocument()
+// safeFunction(HTMLDocument)
+// obj_toString(document, 'HTMLDocument')
+// document = watch(document, "document");
+window.document = document;
+window.HTMLDocument = HTMLDocument;
+ 
+ 
+function Navigator(){}
+Navigator.prototype.appCodeName = "Mozilla";
+Navigator.prototype.appName = "Netscape";
+Navigator.prototype.language = "zh-CN";
+Navigator.prototype.languages = [
+    "zh-CN",
+    "zh",
+    "en"
+];
+Navigator.prototype.platform = "MacIntel";
+Navigator.prototype.product = "Gecko";
+Navigator.prototype.productSub = "20030107";
+function PermissionStatus(){
+    this.state = "denied"
+    this.then = function then(){}
+};safeFunction(PermissionStatus)
+function Permissions(){
+}
+Permissions.prototype.query = function query() {
+    // console.log("对象 => navigator.permissions.query " + "调用方法: query", arguments[0])
+    return Promise.resolve(new PermissionStatus())
+};safeFunction(Permissions.prototype.query)
+Navigator.prototype.permissions = new Permissions()
+Navigator.prototype.userAgent = "";
+Navigator.prototype.vendor = "Google Inc.";
+Navigator.prototype.webdriver = false;
+navigator = new Navigator()
+// navigator = watch(navigator, "navigator");
+window.navigator = navigator;
+window.Navigator = Navigator;
+ 
+ 
+function Storage(){}
+sessionStorage = new Storage()
+// sessionStorage = watch(sessionStorage, "sessionStorage");
+window.sessionStorage = sessionStorage;
+ 
+ 
+localStorage = new Storage()
+// localStorage = watch(localStorage, "localStorage");
+window.localStorage = localStorage;
+window.Storage = Storage;
+ 
+ 
+function Location(){}
+Location.prototype = {
+    "ancestorOrigins": {},
+    "href": "https://bf5b000000001001945f?xsec_token=AB3TbsCqzVXoWzLIZU5EZiXQBkisr5haqXi5iXIV2NtO0=&xsec_source=pc_note",
+    "origin": "https:shu.com",
+    "protocol": "https:",
+    "host": "www..com",
+    "hostname": "www.xiaohongshu.com",
+    "port": "",
+    "pathname": "/user/00000001001945f",
+    "search": "?xsec_token=AB3TbsCqzVXoWzLIZU5EZiXQBkisr5haqXi5iXIV2NtO0=&xsec_source=pc_note",
+    "hash": ""
+}
+location = new Location()
+// location = watch(location, "location");
+window.location = location;
+window.Location = Location;
+ 
+ 
+function History(){}
+history = new History()
+// history = watch(history, "history");
+window.history = history;
+window.History = History;
+ 
+ 
+function Screen(){}
+screen = new Screen()
+// screen = watch(screen, "screen");
+window.screen = screen;
+window.Screen = Screen;
 
-// 挂载实例对象到 window
-window.navigator = navigator
-window.document = document
-window.location = location
-
-console.log('✅ 所有对象监视已设置完成');
 
 
 var a = globalThis;
@@ -332,12 +533,17 @@ console.log("z::",z,"P[z]::",P[z])          }
           }
         } else {
           P[++z] = N.apply(J, u);
-          console.log("N::",N,"J::",J,"u::",u,"P[z]::",P[z])
+          console.log("N::",N,"J::",J,"u::",u,"P[z]::",P[z]);
+          if (J &&typeof J=="object"&&J.length==97 ){console.log("11111111111u::",u[0])
+          }
+          if (J==null &&u&&typeof u=="object"&&u.length==2){console.log("11111111111u::",u[0])
+          }
+            // 
         }
         for (; Q > 3269;) {
           if (z === 3269) {
             P[z--][z] = P[z++];
-console.log("z::",z,"P[z]::",P[z])          }
+          }
           z--;
         }
       } else if (Q === 69) {
@@ -1384,3 +1590,4 @@ window.c93b4da3(l, [,, typeof Object !== "undefined" ? Object : undefined, typeo
 
 console.log('✅ 生成x3的值:',window.mnsv2('/api/redcaptcha/v2{"a":"b"}','701d7db128f79737abc1c57cc97e69da'));
 
+// console.log('✅ 生成x3的值:',window.mnsv2('/api/sns/web/v1/homefeed{"cursor_score": "","num": 39,"refresh_type": 1,"note_index": 33,"unread_begin_note_id": "","unread_end_note_id": "","unread_note_count": 0,"category": "homefeed_recommend","search_key": "","need_num": 14,"image_formats": ["jpg","webp","avif"],"need_filter_image": false}','b5c8461d9b11f34d56d087d95db75a6b'));
