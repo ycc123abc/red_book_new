@@ -534,9 +534,14 @@ console.log("z::",z,"P[z]::",P[z])          }
         } else {
           P[++z] = N.apply(J, u);
           console.log("N::",N,"J::",J,"u::",u,"P[z]::",P[z]);
-          if (J &&typeof J=="object"&&J.length==97 ){console.log("11111111111u::",u[0])
-          }
-          if (J==null &&u&&typeof u=="object"&&u.length==2){console.log("11111111111u::",u[0])
+          // if (J &&typeof J=="object"&&J.length==97 &&u&&typeof u=="object"){
+          //   console.log("11111111111u::",u[0])
+          // }
+          // if (J==null &&u&&typeof u=="object"&&U.length==2){
+          //   console.log("11111111111u::",u[0])
+          // }
+          if (P && P[z] && (P[z].length == 128)){
+            console.log("P[z]::",P[z])
           }
             // 
         }
