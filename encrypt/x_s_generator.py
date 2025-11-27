@@ -105,7 +105,7 @@ print(result_list,len(result_list))
 #######################
 str_val = 'e6483ca2a1eed5e3'
 uint8_list = [ord(char) for char in str_val]
-print(uint8_list)
+print("uint8_list",uint8_list)
 def convert_to_uint32_array(n, r):
     """
     将字节数组转换为32位无符号整数数组
@@ -261,8 +261,6 @@ t=[
   21,
 ]
 print(convert_to_uint32_array(t, True))
-
-
 
 ######################
 def uint32_array_to_uint8_array(uint32_arr):
