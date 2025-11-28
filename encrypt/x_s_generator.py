@@ -1,381 +1,282 @@
-import random 
-import time 
-
-initial_list =[119, 104, 96, 41]
-
-t=4294967295
-qarams='/api/sns/web/v1/homefeed{"cursor_score": "","num": 39,"refresh_type": 1,"note_index": 33,"unread_begin_note_id": "","unread_end_note_id": "","unread_note_count": 0,"category": "homefeed_recommend","search_key": "","need_num": 14,"image_formats": ["jpg","webp","avif"],"need_filter_image": false}'
-md5_str='b5c8461d9b11f34d56d087d95db75a6b'
-
-a1='19ab462768dbnostuyyqujnz1j5fyrt8egmfrrr1n50000440764'
-random_int  =int(t*random.random())
-random_int=int(t*0.3645888406208544)
-arr=[random_int&255,random_int>>8&255,random_int>>16&255,random_int>>24&255]
-
-result_list=initial_list+arr
-print(result_list)
-# [119, 104, 96, 41, 159, 59, 15, 146]
-
-t+=1
-# timestamp=1764139892236
-timestamp=int(time.time()*1000)
-integer_part=int(timestamp / t)
-fractional_part = (timestamp / t) - integer_part
-
-init_num = int(fractional_part * t)
-right_move=0
-c=0
-
-num_list_second=[]
-result=0
-print(init_num)
-for i in range(4):
-    a=init_num>>right_move
-    b=a&255
-    num_list_second.append(b)
-    if i==0:
-        c=0
-        d=b
-    else:
-        c+=b
-        d=c&255
-    right_move+=8
-    result=d
-print(num_list_second)
-for i in range(4):
-    init_num=integer_part
-    first_num=init_num&255
-    second_num=init_num+result
-    third_num=second_num&255
-    fourth_num=third_num+1
-print(fourth_num)
-
-result_list.append(fourth_num^41)
-for index,value in enumerate(num_list_second):
-    if index==0:
-        continue
-    result_list.append(value^41)
-result_list+=[179,40,41,41]
-print(result_list)
-###################
-init_part=int((0.18809002079069614)*(t+1))
-right_move=0
-for i in range(8):
-    result_num=init_part&255
-    init_part=init_part>>8
-    result_list.append(result_num)
-print(result_list)
-#####################
-init_part=1
-for i in range(4):
-    result_num=init_part&255
-    init_part=init_part>>8
-    result_list.append(result_num)
-print(result_list)
-#####################
-init_part=int(random.randint(150,200))
-for i in range(4):
-    result_num=init_part&255
-    init_part=init_part>>8
-    result_list.append(result_num)
-print(result_list)
-#####################
-init_part=len(qarams)
-for i in range(4):
-    result_num=init_part&255
-    init_part=init_part>>8
-    result_list.append(result_num)
-print(result_list,len(result_list))
-#####################
-for i in range(0, len(md5_str), 2):
-    pair = md5_str[i:i+2]
-    result_list.append(int(pair, 16)^result_list[4])
-    if i==14:
-        break
-print(result_list,len(result_list))
-#####################
-# 转换为字节数组 (类似于 Uint8Array)
-a1_byte_array = a1.encode('utf-8')
-a1_byte_array_list = list(a1_byte_array)
-#“xhs-pc-web” 生成数组   120, 104, 115, 45, 112, 99, 45, 119, 101, 98]  10 为固定值
-result_list=result_list+[52]+a1_byte_array_list+[10, 120, 104, 115, 45, 112, 99, 45, 119, 101, 98]
-print(result_list,len(result_list))
-#####################
-#248, 172, 102, 103, 201, 182, 129, 98, 95, 7, 68, 251,132, 21]  暂时固定
-result_list+=[1, result_list[4]^115, 248, 172, 102, 103, 201, 182, 129, 98, 95, 7, 68, 251,132, 21]
-print(result_list,len(result_list))
-#######################
-str_val = 'e6483ca2a1eed5e3'
-uint8_list = [ord(char) for char in str_val]
-print("uint8_list",uint8_list)
-def convert_to_uint32_array(n, r):
-    """
-    将字节数组转换为32位无符号整数数组
-    
-    Args:
-        n: 输入的字节数组（列表）
-        r: 布尔值，决定是否添加长度信息
-        
-    Returns:
-        32位无符号整数列表
-    """
-    e = len(n)
-    a = e >> 2  # 等价于 e // 4
-    
-    # 如果长度不是4的倍数，增加一个单位
-    if (3 & e) != 0:  # 等价于 e % 4 != 0
-        a += 1
-    
-    # 根据参数r决定是否添加长度信息
-    if r:
-        t = [0] * (a + 1)
-        t[a] = e  # 在末尾存储原始长度
-    else:
-        t = [0] * a
-    
-    # 将输入数组n的每个字节按小端序打包到数组中
-    for o in range(e):
-        t[o >> 2] |= n[o] << ((3 & o) << 3)  # 等价于 t[o // 4] |= n[o] << ((o % 4) * 8)
-    
-    return t
-key=convert_to_uint32_array(uint8_list, False)
-t=[
-  119,104,96,
-  41,220,
-  136,
-  242,
-  84,
-  174,
-  16,
-  216,
-  235,
-  179,
-  40,
-  41,
-  41,
-  0,
-  0,
-  0,
-  0,
-  0,
-  0,
-  0,
-  0,
-  1,
-  0,
-  0,
-  0,
-  186,
-  0,
-  0,
-  0,
-  27,
-  0,
-  0,
-  0,
-  172,
-  193,
-  161,
-  109,
-  244,
-  43,
-  75,
-  235,
-  52,
-  49,
-  57,
-  57,
-  97,
-  52,
-  50,
-  55,
-  54,
-  101,
-  51,
-  100,
-  122,
-  109,
-  56,
-  104,
-  107,
-  113,
-  118,
-  121,
-  116,
-  117,
-  108,
-  113,
-  109,
-  120,
-  116,
-  104,
-  97,
-  109,
-  106,
-  114,
-  102,
-  103,
-  103,
-  101,
-  121,
-  113,
-  102,
-  49,
-  100,
-  55,
-  51,
-  48,
-  48,
-  48,
-  48,
-  51,
-  49,
-  48,
-  55,
-  55,
-  54,
-  10,
-  120,
-  104,
-  115,
-  45,
-  112,
-  99,
-  45,
-  119,
-  101,
-  98,
-  1,
-  175,
-  248,
-  172,
-  102,
-  103,
-  201,
-  183,
-  129,
-  98,
-  95,
-  7,
-  68,
-  251,
-  132,
-  21,
-]
-data=convert_to_uint32_array(t, True)
-class OptimizedDecryptor:
-    """使用类来避免重复计算常量"""
-    
+import random
+import time
+from typing import List
+from .base64_generator import Base64Generator
+import hashlib
+class XHSSignatureGenerator:
+    """小红书签名生成器"""
     def __init__(self):
-        self.const = 1013904243
-        self.n_mapping = {4: 3, 5: 0, 6: 1}
+        self.t = 4294967295
+        self.initial_list = [119, 104, 96, 41]
+        self.fixed_suffix = [179, 40, 41, 41]
+        self.fixed_web = [10, 120, 104, 115, 45, 112, 99, 45, 119, 101, 98]
+        self.fixed_bytes = [248, 172, 102, 103, 201, 182, 129, 98, 95, 7, 68, 251, 132, 21]
+        self.base64_charset = 'MfgqrsbcyzPQRStuvC7mn501HIJBo2DE'
+        self.encryption_key = 'e6483ca2a1eed5e3'
+        self.timestamp = int(time.time() * 1000)
+        self.random_int = int(self.t * random.random())
     
-    def single_decrypt(self, m, x, a, idx, n, key, sign=1):
-        """优化的单个解密操作"""
-        n_val = self.n_mapping.get(n, n)
-        k = (n_val ^ idx) % 4
+    def _convert_to_uint32_array(self, n: List[int], r: bool) -> List[int]:
+        """将字节数组转换为32位无符号整数数组"""
+        e = len(n)
+        a = e >> 2
         
-        number_7 = ((a >> 5) ^ (x << 2)) + ((x >> 3) ^ (a << 4))
-        number_12 = (m ^ x) + (a ^ key[k])
+        if (3 & e) != 0:
+            a += 1
         
-        result = number_7 ^ number_12
+        if r:
+            t = [0] * (a + 1)
+            t[a] = e
+        else:
+            t = [0] * a
         
-        if sign != 1:
-            print(f"Debug: n={n}, idx={idx}, k={k}, result={result}")
-            
-        return result
+        for o in range(e):
+            t[o >> 2] |= n[o] << ((3 & o) << 3)
+        
+        return t
     
-    def get_iv(self, e):
-        return e / self.const, e + self.const
+    def _uint32_array_to_uint8_array(self, uint32_arr: List[int]) -> List[int]:
+        """将32位无符号整数列表转换为8位无符号整数列表"""
+        byte_length = len(uint32_arr) * 4
+        uint8_arr = [0] * byte_length
+        
+        for i in range(len(uint32_arr)):
+            value = uint32_arr[i]
+            offset = i * 4
+            uint8_arr[offset] = (value >> 0) & 0xFF
+            uint8_arr[offset + 1] = (value >> 8) & 0xFF
+            uint8_arr[offset + 2] = (value >> 16) & 0xFF
+            uint8_arr[offset + 3] = (value >> 24) & 0xFF
+        
+        return uint8_arr
     
-    def decrypt(self, r, key):
-        """使用优化算法的解密"""
-        length = len(r)
-        last_idx = length - 1
-        a = r[last_idx]
-        e = 0
+    def _base64_encode(self, data: List[int], charset: str) -> str:
+        """自定义Base64编码"""
+        full_charset = charset + "FTKdeNOwxWXYZap89+/A4UVLhijkl63G"
+        result = []
         
-        iterations = 6 + 52 // length
-        
-        for _ in range(iterations):
-            n, e = self.get_iv(e)
-            n_int = int(n)
+        for e in range(0, len(data), 3):
+            o = data[e]
+            l = data[e + 1] if e + 1 < len(data) else 0
+            n = data[e + 2] if e + 2 < len(data) else 0
             
-            for idx in range(last_idx):
-                x = r[idx + 1]
-                r[idx] = (r[idx] + self.single_decrypt(e, x, a, idx, n_int, key)) & 0xFFFFFFFF
-                a = r[idx]
+            u = o << 16 | l << 8 | n
+            F = [
+                (u >> 18) & 63,
+                (u >> 12) & 63,
+                (u >> 6) & 63,
+                u & 63
+            ]
             
-            x = r[0]
-            r[last_idx] = (r[last_idx] + self.single_decrypt(e, x, a, last_idx, n_int, key)) & 0xFFFFFFFF
-            a = r[last_idx]
+            padding = 0 if len(data) - e >= 3 else 3 - (len(data) - e)
+            
+            for f in range(4 - padding):
+                result.append(full_charset[F[f]])
+            
+            for _ in range(padding):
+                result.append("=")
         
-        return r
+        return "".join(result)
+    
+    def _decrypt_data(self, data: List[int], key_str: str) -> List[int]:
+        """数据解密"""
+        class OptimizedDecryptor:
+            def __init__(self):
+                self.const = 1013904243
+                self.n_mapping = {4: 3, 5: 0, 6: 1}
+            
+            def single_decrypt(self, m, x, a, idx, n, key, sign=1):
+                n_val = self.n_mapping.get(n, n)
+                k = (n_val ^ idx) % 4
+                number_7 = ((a >> 5) ^ (x << 2)) + ((x >> 3) ^ (a << 4))
+                number_12 = (m ^ x) + (a ^ key[k])
+                result = number_7 ^ number_12
+                return result
+            
+            def get_iv(self, e):
+                return e / self.const, e + self.const
+            
+            def decrypt(self, r, key):
+                length = len(r)
+                last_idx = length - 1
+                a = r[last_idx]
+                e = 0
+                iterations = 6 + 52 // length
+                
+                for _ in range(iterations):
+                    n, e = self.get_iv(e)
+                    n_int = int(n)
+                    
+                    for idx in range(last_idx):
+                        x = r[idx + 1]
+                        r[idx] = (r[idx] + self.single_decrypt(e, x, a, idx, n_int, key)) & 0xFFFFFFFF
+                        a = r[idx]
+                    
+                    x = r[0]
+                    r[last_idx] = (r[last_idx] + self.single_decrypt(e, x, a, last_idx, n_int, key)) & 0xFFFFFFFF
+                    a = r[last_idx]
+                
+                return r
+        
+        # 准备解密密钥
+        key_uint8 = [ord(char) for char in key_str]
+        key = self._convert_to_uint32_array(key_uint8, False)
+        
+        # 准备数据
+        data_uint32 = self._convert_to_uint32_array(data, True)
+        
+        # 解密
+        decryptor = OptimizedDecryptor()
+        decrypted_data = decryptor.decrypt(data_uint32.copy(), key)
+        
+        return self._uint32_array_to_uint8_array(decrypted_data)
+    
 
-decryptor = OptimizedDecryptor()
-result2 = decryptor.decrypt(data.copy(), key)
-print(result2)
-######################
-def uint32_array_to_uint8_array(uint32_arr):
-    """
-    将一个32位无符号整数列表转换为8位无符号整数列表
-    
-    Args:
-        uint32_arr: 包含32位无符号整数的列表
+    def generate_signature(self, qarams: str, md5_str: str, a1: str) -> str:
+        """
+        生成签名
         
-    Returns:
-        包含8位无符号整数的列表
-    """
-    byte_length = len(uint32_arr) * 4
-    uint8_arr = [0] * byte_length
-    
-    for i in range(len(uint32_arr)):
-        value = uint32_arr[i]
-        offset = i * 4
-        
-        # 小端序转换
-        uint8_arr[offset]     = (value >> 0)  & 0xFF
-        uint8_arr[offset + 1] = (value >> 8)  & 0xFF
-        uint8_arr[offset + 2] = (value >> 16) & 0xFF
-        uint8_arr[offset + 3] = (value >> 24) & 0xFF
-    
-    return uint8_arr
-result_list=uint32_array_to_uint8_array(result2)
-#######################
-def Base64(t, tt):
-    """
-    将输入的字节列表进行自定义 Base64 编码
-    
-    Args:
-        t: 128位的字节列表
-        tt: 自定义的Base64字符集
-    
-    Returns:
-        str: 编码后的字符串
-    """
-    tt = tt + "FTKdeNOwxWXYZap89+/A4UVLhijkl63G"
-    r = []
-    
-    for e in range(0, len(t), 3):
-        o = t[e]
-        l = t[e + 1] if e + 1 < len(t) else 0
-        n = t[e + 2] if e + 2 < len(t) else 0
-        
-        u = o << 16 | l << 8 | n
-        F = [
-            (u >> 18) & 63,
-            (u >> 12) & 63,
-            (u >> 6) & 63,
-            u & 63
-        ]
-        
-        _ = 0 if len(t) - e >= 3 else 3 - (len(t) - e)
-        
-        for f in range(4 - _):
-            r.append(tt[F[f]])
+        Args:
+            qarams: 请求参数
+            md5_str: MD5字符串
+            a1: 设备标识
             
-        for h in range(_):
-            r.append("=")
+        Returns:
+            生成的签名
+        """
+        result_list = self.initial_list.copy()
+        
+        # 步骤1: 生成随机字节
+        arr = [self.random_int & 255, self.random_int >> 8 & 255, 
+               self.random_int >> 16 & 255, self.random_int >> 24 & 255]
+        result_list.extend(arr)
+
+        # 步骤2: 时间戳相关计算
+        self.t+=1
+        integer_part = int(self.timestamp / self.t)
+        fractional_part = (self.timestamp / self.t) - integer_part
+        init_num = int(fractional_part * self.t)
+        
+        # 计算第二个数字列表
+        num_list_second = []
+        right_move = 0
+        result = 0
+
+        for i in range(4):
+            a = init_num >> right_move
+            b = a & 255
+            num_list_second.append(b)
+            if i == 0:
+                c = 0
+                d = b
+            else:
+                c += b
+                d = c & 255
+            right_move += 8
+            result = d
+
+
+        # 计算第四个数字
+        fourth_num = 0
+        for i in range(4):
+            init_num = integer_part
+            first_num = init_num & 255
+            second_num = init_num + result
+            third_num = second_num & 255
+            fourth_num = third_num + 1
+
+        # 添加计算结果
+        result_list.append(fourth_num ^ 41)
+        for index, value in enumerate(num_list_second):
+            if index == 0:
+                continue
+            result_list.append(value ^ 41)
+        
+        # 步骤3: 添加固定后缀
+        result_list.extend(self.fixed_suffix)
+        
+        # 步骤4: 添加时间相关字节
+        init_part = int((0.18809002079069614) * (self.t + 1))
+        for i in range(8):
+            result_num = init_part & 255
+            init_part = init_part >> 8
+            result_list.append(result_num)
+
+        # 步骤5: 添加固定值1
+        init_part = 1
+        for i in range(4):
+            result_num = init_part & 255
+            init_part = init_part >> 8
+            result_list.append(result_num)
+
+        # 步骤6: 添加随机数
+        init_part = random.randint(150, 200)
+        for i in range(4):
+            result_num = init_part & 255
+            init_part = init_part >> 8
+            result_list.append(result_num)
+
+        # 步骤7: 添加参数长度
+        init_part = len(qarams)
+        for i in range(4):
+            result_num = init_part & 255
+            init_part = init_part >> 8
+            result_list.append(result_num)
+
+        # 步骤8: 添加MD5相关字节
+        for i in range(0, len(md5_str), 2):
+            pair = md5_str[i:i+2]
+            result_list.append(int(pair, 16) ^ result_list[4])
+            if i == 14:
+                break
+
+        # 步骤9: 添加设备标识和固定web标识
+        a1_byte_array = list(a1.encode('utf-8'))
+        result_list = result_list + [52] + a1_byte_array + self.fixed_web
+
+        # 步骤10: 添加固定字节
+        result_list.extend([1, result_list[4] ^ 115] + self.fixed_bytes)
+
+        # 步骤11: 数据解密
+        
+        decrypted_data = self._decrypt_data(result_list, self.encryption_key)
+        
+        # 步骤12: Base64编码
+        base64_result = self._base64_encode(decrypted_data, self.base64_charset)
+        
+        return f"mns0201_{base64_result}"
+
+
+def get_xs(uri,a1):
+    md5_obj = hashlib.md5()
+    md5_obj.update(uri.encode('utf-8'))
+    md5_str = md5_obj.hexdigest()
+    print("md5_str",md5_str)
+    generator = XHSSignatureGenerator()
+    signature = generator.generate_signature(uri, md5_str, a1)
+    data={
+            "x0": "4.2.6",
+            "x1": "xhs-pc-web", 
+            "x2": "Windows",
+            "x3": signature,
+            "x4": "object"
+        }
+    print("signature",signature)
+    base64generator=Base64Generator()
+    result=base64generator.b64_encode(data)
+    return "XYS_"+result
+
+
+
+# 使用示例
+if __name__ == "__main__":
+    print(xsGenerator().b64_encode('{"s0":5,"s1":"","x0":"1","x1":"4.2.6","x2":"Windows","x3":"xhs-pc-web","x4":"4.86.0","x5":"19ab462768dbnostuyyqujnz1j5fyrt8egmfrrr1n50000440764","x6":"","x7":"","x8":"I38rHdgsjopgIvesdVwgIC+oIELmBZ5e3VwXLgFTIxS3bqwErFeexd0ekncAzMFYnqthIhJeSnMDKutRI3KsYorWHPtGrbV0P9WfIi/eWc6eYqtyQApPI37ekmR6QL+5Ii6sdneeSfqYHqwl2qt5B0DBIx+PGDi/sVtkIxdsxuwr4qtiIhuaIE3e3LV0I3VTIC7e0utl2ADmsLveDSKsSPw5IEvsiVtJOqw8BuwfPpdeTFWOIx4TIiu6ZPwrPut5IvlaLbgs3qtxIxes1VwHIkumIkIyejgsY/WTge7eSqte/D7sDcpipedeYrDtIC6eDVw2IENsSqtlnlSuNjVtIvoekqt3cZ7sVo4gIESyIhEqHnquIxhnqz8gIkIfoqwkICZWG73sdlOeVPw3IvAe0fged0MKIi5s3Mr52utAIiKsidvekZNeTPt4nAOeWPwEIvSLce0eSVwCLfosDuwPI3ErIxE5Luwwaqw+rekhZANe1MNe0Pw9ICNsVLoeSbIFIkosSr7sVnFiIkgsVVtMIiudqqw+tqtWI30e3PwIIhoe3ut1IiOsjut3wutnsPwXICclI3Ir27lk2I5e1utCIES/IEJs0PtnpYIAO0JeYfD1IErPOPtKoqw3I3OexqtWQL5eizKsVbmwIhNs6B7sTuwGpuwOICJeWVwiIkgexjRwIveeSo/efVtSI37skqwuNdQPIhHpICgefYoskjvsfl7ekuwmIEMTIvrOzqweI3ZSIkgei/iEGUNsjVwaIirZyVtuHIgeWSgsSuwpcI==","x9":-1843477756,"x10":0,"x11":"normal"}'))    
+    # # 创建生成器实例
+    # generator = XHSSignatureGenerator()
+    # # 准备参数
+    # qarams='/api/sns/web/v1/homefeed{"cursor_score": "","num": 39,"refresh_type": 1,"note_index": 33,"unread_begin_note_id": "","unread_end_note_id": "","unread_note_count": 0,"category": "homefeed_recommend","search_key": "","need_num": 14,"image_formats": ["jpg","webp","avif"],"need_filter_image": false}'
+    # md5_str='b5c8461d9b11f34d56d087d95db75a6b'
+    # a1='19ab462768dbnostuyyqujnz1j5fyrt8egmfrrr1n50000440764'
+    # get_xs(qarams,a1)
+
     
-    return "".join(r)
-print("mns0201_"+Base64(result_list, 'MfgqrsbcyzPQRStuvC7mn501HIJBo2DE'))

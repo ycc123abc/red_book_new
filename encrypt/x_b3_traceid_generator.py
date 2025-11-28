@@ -8,6 +8,7 @@
 import random
 
 class  B3TraceIdGenerator:
+    @staticmethod
     def get_b3_trace_id():
         S = "abcdef0123456789"
         k = 16
@@ -15,6 +16,9 @@ class  B3TraceIdGenerator:
         for _ in range(k):
             trace_id += random.choice(S)
         return trace_id
+
+def get_b3_trace_id():
+    return B3TraceIdGenerator.get_b3_trace_id()
 
 
 

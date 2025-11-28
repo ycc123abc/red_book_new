@@ -20,10 +20,9 @@ class XrayTraceIdGenerator:
 
     def get_xray_trace_id(self):
         # 生成时间戳部分
-        timestamp = int(time.time() * 1000)  # Date.now()返回毫秒
+        timestamp = int(time.time() * 1000) 
         # 左移23位并和序列号进行或运算
         timestamp_part = (timestamp << 23) | 5878470
-        print(timestamp)
         # 生成随机部分（两个32位随机数组成64位）
         random_high = self.random(32)
         random_low = self.random(32)
@@ -37,3 +36,8 @@ class XrayTraceIdGenerator:
         # 拼接结果
         trace_id = timestamp_hex + random_hex
         return trace_id
+
+
+def get_xray_trace_id():
+    generator = XrayTraceIdGenerator()
+    return generator.get_xray_trace_id()

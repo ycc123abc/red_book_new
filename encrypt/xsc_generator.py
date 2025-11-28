@@ -2,7 +2,7 @@
 import json
 from typing import Any
 import urllib.parse
-
+from .base64_generator import Base64Generator
 class XscGenerator:
     def __init__(self,a1,x8) -> None:
         self.a1 = a1
@@ -487,22 +487,27 @@ class XscGenerator:
             "x2": "Windows",
             "x3": "xhs-pc-web",
             "x4": "4.86.0",
-            "x5": a1,
+            "x5": self.a1,
             "x6": "",
             "x7": "",
-            "x8": e,
+            "x8": self.x8,
             "x9": x9,
             "x10": 0,
             "x11": "normal"
         }  
-        return  self.b64_encode(self.encode_utf8(json.dumps(y,separators=(',', ':'))))
+        print("x9",x9)
+        base64generator=Base64Generator()
+        result=base64generator.b64_encode(y)
+        return result
 
-a1 = "19ab462768dbnostuyyqujnz1j5fyrt8egmfrrr1n50000440764"
-e = "I38rHdgsjopgIvesdVwgIC+oIELmBZ5e3VwXLgFTIxS3bqwErFeexd0ekncAzMFYnqthIhJeSnMDKutRI3KsYorWHPtGrbV0P9WfIi/eWc6eYqtyQApPI37ekmR6QL+5Ii6sdneeSfqYHqwl2qt5B0DBIx+PGDi/sVtkIxdsxuwr4qtiIhuaIE3e3LV0I3VTIC7e0utl2ADmsLveDSKsSPw5IEvsiVtJOqw8BuwfPpdeTFWOIx4TIiu6ZPwrPut5IvlaLbgs3qtxIxes1VwHIkumIkIyejgsY/WTge7eSqte/D7sDcpipedeYrDtIC6eDVw2IENsSqtlnlSuNjVtIvoekqt3cZ7sVo4gIESyIhE4HnquIxhnqz8gIkIfoqwkICZWGd3sdlOeVPw3IvAe0fged0MKIi5s3Mr52utAIiKsidvekZNeTPt4nAOeWPwEIvSLcAAedVwUL97sSqwsI34rIxE5Luwwaqw+rekhZANe1MNe0Pw9ICNsVLoeSbIFIkosSr7sVnFiIkgsVVtMIiudqqw+tqtWI30e3PwIIhoe3ut1IiOsjut3wutnsPwXICclI3Ir27lk2I5e1utCIES/IEJs0PtnpYIAO0JeYfD1IErPOPtKoqw3I3OexqtWQL5eizJsTSmmIhgs6B7sTuwGpuwOICJeWVwiIkgexjRwIveeSo/efVtSI37skqwuNdQPIhHpICgefYoskjvsfl7ekuwmIEMTIvrOzqweI3ZSIkgei/iEGUKefPtHIiGZyVtuHIgsSZ5sSuwpcI=="
+# a1 = "19ab462768dbnostuyyqujnz1j5fyrt8egmfrrr1n50000440764"
 
-xscencrpt=XscEncrypt(a1=a1,x8=e)
-xsc=xscencrpt.get_sxc()
-print(xsc)
+
+def get_xsc(a1,e):
+    
+    xscencrpt=XscGenerator(a1=a1,x8=e)
+    xsc=xscencrpt.get_sxc()
+    return xsc
 
 
 
