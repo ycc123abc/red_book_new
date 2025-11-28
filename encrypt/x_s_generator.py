@@ -1,11 +1,12 @@
 import random 
 import time 
+
 initial_list =[119, 104, 96, 41]
 
 t=4294967295
 qarams='/api/sns/web/v1/homefeed{"cursor_score": "","num": 39,"refresh_type": 1,"note_index": 33,"unread_begin_note_id": "","unread_end_note_id": "","unread_note_count": 0,"category": "homefeed_recommend","search_key": "","need_num": 14,"image_formats": ["jpg","webp","avif"],"need_filter_image": false}'
 md5_str='b5c8461d9b11f34d56d087d95db75a6b'
-cookie='abRequestId=9f029439-8c95-5463-a15b-48bd5bf64748; a1=19ab462768dbnostuyyqujnz1j5fyrt8egmfrrr1n50000440764; webId=401ec8f68cc5bc61d5d759d23190de90; gid=yj0D4KJ0q2dKyj0D4KJWKkFFYfDIlM97vvA76yIVIuyV2i28ivF9YF888448WK488SKiKy8f; xsecappid=xhs-pc-web; webBuild=4.86.0; websectiga=f3d8eaee8a8c63016320d94a1bd00562d516a5417bc43a032a80cbf70f07d5c0; unread={%22ub%22:%2269087af10000000003037d22%22%2C%22ue%22:%2269120603000000000303647d%22%2C%22uc%22:41}; loadts=1764142964607'
+
 a1='19ab462768dbnostuyyqujnz1j5fyrt8egmfrrr1n50000440764'
 random_int  =int(t*random.random())
 random_int=int(t*0.3645888406208544)
@@ -16,7 +17,8 @@ print(result_list)
 # [119, 104, 96, 41, 159, 59, 15, 146]
 
 t+=1
-timestamp=1764139892236
+# timestamp=1764139892236
+timestamp=int(time.time()*1000)
 integer_part=int(timestamp / t)
 fractional_part = (timestamp / t) - integer_part
 
@@ -136,7 +138,7 @@ def convert_to_uint32_array(n, r):
         t[o >> 2] |= n[o] << ((3 & o) << 3)  # 等价于 t[o // 4] |= n[o] << ((o % 4) * 8)
     
     return t
-print(convert_to_uint32_array(uint8_list, False))
+key=convert_to_uint32_array(uint8_list, False)
 t=[
   119,104,96,
   41,220,
@@ -260,8 +262,59 @@ t=[
   132,
   21,
 ]
-print(convert_to_uint32_array(t, True))
+data=convert_to_uint32_array(t, True)
+class OptimizedDecryptor:
+    """使用类来避免重复计算常量"""
+    
+    def __init__(self):
+        self.const = 1013904243
+        self.n_mapping = {4: 3, 5: 0, 6: 1}
+    
+    def single_decrypt(self, m, x, a, idx, n, key, sign=1):
+        """优化的单个解密操作"""
+        n_val = self.n_mapping.get(n, n)
+        k = (n_val ^ idx) % 4
+        
+        number_7 = ((a >> 5) ^ (x << 2)) + ((x >> 3) ^ (a << 4))
+        number_12 = (m ^ x) + (a ^ key[k])
+        
+        result = number_7 ^ number_12
+        
+        if sign != 1:
+            print(f"Debug: n={n}, idx={idx}, k={k}, result={result}")
+            
+        return result
+    
+    def get_iv(self, e):
+        return e / self.const, e + self.const
+    
+    def decrypt(self, r, key):
+        """使用优化算法的解密"""
+        length = len(r)
+        last_idx = length - 1
+        a = r[last_idx]
+        e = 0
+        
+        iterations = 6 + 52 // length
+        
+        for _ in range(iterations):
+            n, e = self.get_iv(e)
+            n_int = int(n)
+            
+            for idx in range(last_idx):
+                x = r[idx + 1]
+                r[idx] = (r[idx] + self.single_decrypt(e, x, a, idx, n_int, key)) & 0xFFFFFFFF
+                a = r[idx]
+            
+            x = r[0]
+            r[last_idx] = (r[last_idx] + self.single_decrypt(e, x, a, last_idx, n_int, key)) & 0xFFFFFFFF
+            a = r[last_idx]
+        
+        return r
 
+decryptor = OptimizedDecryptor()
+result2 = decryptor.decrypt(data.copy(), key)
+print(result2)
 ######################
 def uint32_array_to_uint8_array(uint32_arr):
     """
@@ -287,18 +340,8 @@ def uint32_array_to_uint8_array(uint32_arr):
         uint8_arr[offset + 3] = (value >> 24) & 0xFF
     
     return uint8_arr
-
-
-result_list=uint32_array_to_uint8_array([
-  3824717586, 2279402056, 976766202, 1217645403, 812956054, 2118438510,
-  1868406736, 1622411888, 3030276304, 3612621250, 763288327, 1639915843,
-  3835578375, 1142288051, 3765211505, 2132232372, 2862751668, 2501687603,
-  2725868098, 3114663414, 2517332015, 3788305621, 3361130946, 4009640323,
-  570483359, 4032519973, 3452718685, 1660408586, 3501996765, 1249338241,
-  4018719874, 1131506642
-])
+result_list=uint32_array_to_uint8_array(result2)
 #######################
-
 def Base64(t, tt):
     """
     将输入的字节列表进行自定义 Base64 编码
@@ -335,6 +378,4 @@ def Base64(t, tt):
             r.append("=")
     
     return "".join(r)
-
-result_list=[217, 58, 64, 18, 211, 179, 207, 20, 101, 138, 197, 76, 138, 224, 164, 127, 169, 159, 126, 247, 158, 156, 204, 117, 107, 75, 92, 100, 168, 142, 18, 207, 98, 58, 68, 106, 15, 5, 70, 216, 189, 170, 146, 44, 168, 98, 54, 125, 82, 195, 140, 51, 91, 84, 92, 203, 142, 10, 10, 67, 83, 132, 226, 94, 28, 177, 25, 118, 95, 228, 164, 228, 203, 198, 72, 12, 57, 251, 57, 160, 110, 129, 197, 172, 166, 164, 254, 0, 254, 199, 218, 69, 110, 39, 39, 181, 98, 159, 45, 168, 34, 105, 225, 240, 21, 164, 168, 25, 137, 189, 17, 50, 112, 217, 96, 102, 16, 165, 35, 240, 218, 150, 242, 143, 104, 103, 108, 168]
 print("mns0201_"+Base64(result_list, 'MfgqrsbcyzPQRStuvC7mn501HIJBo2DE'))

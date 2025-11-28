@@ -267,23 +267,28 @@
 
 // e = "I38rHdgsjopgIvesdVwgIC+oIELmBZ5e3VwXLgFTIxS3bqwErFeexd0ekncAzMFYnqthIhJeSnMDKutRI3KsYorWHPtGrbV0P9WfIi/eWc6eYqtyQApPI37ekmR6QL+5Ii6sdneeSfqYHqwl2qt5B0DBIx+PGDi/sVtkIxdsxuwr4qtiIhuaIE3e3LV0I3VTIC7e0utl2ADmsLveDSKsSPw5IEvsiVtJOqw8BuwfPpdeTFWOIx4TIiu6ZPwrPut5IvlaLbgs3qtxIxes1VwHIkumIkIyejgsY/WTge7eSqte/D7sDcpipedeYrDtIC6eDVw2IENsSqtlnlSuNjVtIvoekqt3cZ7sVo4gIESyIhE4HnquIxhnqz8gIkIfoqwkICZWGd3sdlOeVPw3IvAe0fged0MKIi5s3Mr52utAIiKsidvekZNeTPt4nAOeWPwEIvSLcAAedVwUL97sSqwsI34rIxE5Luwwaqw+rekhZANe1MNe0Pw9ICNsVLoeSbIFIkosSr7sVnFiIkgsVVtMIiudqqw+tqtWI30e3PwIIhoe3ut1IiOsjut3wutnsPwXICclI3Ir27lk2I5e1utCIES/IEJs0PtnpYIAO0JeYfD1IErPOPtKoqw3I3OexqtWQL5eizJsTSmmIhgs6B7sTuwGpuwOICJeWVwiIkgexjRwIveeSo/efVtSI37skqwuNdQPIhHpICgefYoskjvsfl7ekuwmIEMTIvrOzqweI3ZSIkgei/iEGUKefPtHIiGZyVtuHIgsSZ5sSuwpcI=="
 // console.log(get_x9(e))
-function single_decrypt(m, x, a, $, n, key,sign) {
-    // 1013904243, 84447908, 124, 0, 0, [942945893, 845243187, 1701130593, 862270820]
-    number_1 = a >>> 5                 //3
-    number_2 = x << 2                 //337791632
-    number_3 = number_1 ^ number_2     //337791635
-    number_4=x>>>3                   //10555988
-    number_5=a<<4                    //1984
-    number_6=number_4^number_5       //10556820
-    number_7=number_3+number_6       //348348455
-    number_8=m^x                    //963011031
+function single_decrypt(m, x, a, $, n, key) {
+
+    number_1 = a >>> 5                 
+    number_2 = x << 2                
+    number_3 = number_1 ^ number_2     
+    number_4=x>>>3                   
+    number_5=a<<4                    
+    number_6=number_4^number_5       
+    number_7=number_3+number_6      
+    number_8=m^x                   
     number_9=$ & 3
-    number_10=number_9^(n%4)           //0
-    number_11=a^key[Math.abs(n%4-$)%4]           //942945817
+    if(n==4)
+        n=3
+    else if(n==5)
+        n=0
+    else if(n==6)
+        n=1
+    number_10=number_9^(n)           //0
+    k=(n ^ $) % 4;
+    number_11=a^key[k]           //942945817
     number_12=number_8+number_11    //1905956848
     number_13=number_7^  number_12    //1700394967
-    if (sign!=1)
-        console.log(n%4,$%4,n,$,number_1,number_2,number_3,number_4,number_5,number_6,number_7,number_8,number_9,number_10,number_11,number_12,number_13)
     return number_13
 }
 function get_iv(e){
@@ -311,19 +316,7 @@ function decrypt(r, t) {
     }
     return r
 }
-// P[z] >>> t:: z:: 1 t:: 5 P[z]:: 3   ok
-// P[z] << t:: z:: 2 t:: 2 P[z]:: 337791632     ok
-// P[z] ^ t:: z:: 1 t:: 337791632 P[z]:: 337791635     ok
-// P[z] >>> t:: z:: 2 t:: 3 P[z]:: 10555988   ok
-// P[z] << t:: z:: 3 t:: 4 P[z]:: 1984          ok
-// P[z] ^ t:: z:: 2 t:: 1984 P[z]:: 10556820   ok
-// P[z] + t:: z:: 1 t:: 10556820 P[z]:: 348348455   ok
-// P[z] ^ t:: z:: 2 t:: 84447908 P[z]:: 963011031   ok
-// P[z] & t:: z:: 4 t:: 3 P[z]:: 0
-// P[z] ^ t:: z:: 4 t:: 0 P[z]:: 0
-// P[z] ^ t:: z:: 3 t:: 124 P[z]:: 942945817
-// P[z] + t:: z:: 2 t:: 942945817 P[z]:: 1905956848
-// P[z] ^ t:: z:: 1 t:: 1905956848 P[z]:: 1700394967
+
 r=new Uint32Array([694184055, 3244882843, 3982478483, 690563251, 0, 0, 1, 186, 27, 719750891, 2886495411, 960049460, 926037089, 1681089846, 1748528506, 2037805419, 1902933364, 1752463469, 1919577441, 1701275494, 828797305, 808662884, 858796080, 926363697, 1752697398, 1668296051, 1650816813, 2901993473, 3083429734, 123691649, 361036612, 124])
 
 t=new Uint32Array([942945893, 845243187, 1701130593, 862270820])

@@ -5,7 +5,55 @@
 // console.log(uint8Array);
 
 
+function calculateX(s, n) {
+    // 确保输入在有效范围内
+    if (n < 0 || n > 6) {
+        throw new Error('n must be between 0 and 6');
+    }
+    if (s < 0) {
+        throw new Error('s must be non-negative');
+    }
+    
+    // 如果 n > 3，则映射到对应的 n-4
+    if (n > 3) {
+        n = n - 4;
+    }
+    
+    // 计算异或结果
+    return (n ^ s) % 4;
+}
 
+// 测试函数
+function testCalculateX() {
+    console.log("测试结果:");
+    
+    // 测试 n=0 到 n=3
+    for (let n = 0; n <= 3; n++) {
+        let row = [];
+        for (let s = 0; s <= 7; s++) {
+            row.push(calculateX(s, n));
+        }
+        console.log(`n=${n}: [${row.join(', ')}]`);
+    }
+    
+    // 测试 n=4 到 n=6
+    for (let n = 4; n <= 6; n++) {
+        let row = [];
+        for (let s = 0; s <= 7; s++) {
+            row.push(calculateX(s, n));
+        }
+        console.log(`n=${n}: [${row.join(', ')}]`);
+    }
+}
+
+// 运行测试
+testCalculateX();
+
+// 使用示例
+console.log("\n使用示例:");
+console.log(`s=3, n=2: ${calculateX(3, 2)}`); // 应该输出 1
+console.log(`s=5, n=1: ${calculateX(5, 1)}`); // 应该输出 0
+console.log(`s=7, n=6: ${calculateX(7, 6)}`); // 应该输出 2
 
 
 

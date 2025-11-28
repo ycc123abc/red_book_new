@@ -1,157 +1,273 @@
 import random
 import time
+from typing import List, Union
 
-class XSGenerator:
-    def __init__(self, initial_list=None):
-        """
-        初始化XSGGenerator类
-        
-        Args:
-            initial_list (list): 初始值列表，默认为[119, 104, 96, 41]
-        """
-        self.initial_list = initial_list or [119, 104, 96, 41]
+class XHSSignatureGenerator:
+    """小红书签名生成器"""
+    
+    def __init__(self):
         self.t = 4294967295
-        self.timestamp=time.time()*1000
-        self.random_seed=random.random()
-        self.timestamp=1764066115679
-        self.random_seed=0.5705449357227173
-
-
+        self.initial_list = [119, 104, 96, 41]
+        self.fixed_suffix = [179, 40, 41, 41]
+        self.fixed_web = [10, 120, 104, 115, 45, 112, 99, 45, 119, 101, 98]
+        self.fixed_bytes = [248, 172, 102, 103, 201, 182, 129, 98, 95, 7, 68, 251, 132, 21]
+        self.base64_charset = 'MfgqrsbcyzPQRStuvC7mn501HIJBo2DE'
+        self.encryption_key = 'e6483ca2a1eed5e3'
     
-    def generate_random_array(self):
+    def _convert_to_uint32_array(self, n: List[int], r: bool) -> List[int]:
+        """将字节数组转换为32位无符号整数数组"""
+        e = len(n)
+        a = e >> 2
+        
+        if (3 & e) != 0:
+            a += 1
+        
+        if r:
+            t = [0] * (a + 1)
+            t[a] = e
+        else:
+            t = [0] * a
+        
+        for o in range(e):
+            t[o >> 2] |= n[o] << ((3 & o) << 3)
+        
+        return t
+    
+    def _uint32_array_to_uint8_array(self, uint32_arr: List[int]) -> List[int]:
+        """将32位无符号整数列表转换为8位无符号整数列表"""
+        byte_length = len(uint32_arr) * 4
+        uint8_arr = [0] * byte_length
+        
+        for i in range(len(uint32_arr)):
+            value = uint32_arr[i]
+            offset = i * 4
+            uint8_arr[offset] = (value >> 0) & 0xFF
+            uint8_arr[offset + 1] = (value >> 8) & 0xFF
+            uint8_arr[offset + 2] = (value >> 16) & 0xFF
+            uint8_arr[offset + 3] = (value >> 24) & 0xFF
+        
+        return uint8_arr
+    
+    def _base64_encode(self, data: List[int], charset: str) -> str:
+        """自定义Base64编码"""
+        full_charset = charset + "FTKdeNOwxWXYZap89+/A4UVLhijkl63G"
+        result = []
+        
+        for e in range(0, len(data), 3):
+            o = data[e]
+            l = data[e + 1] if e + 1 < len(data) else 0
+            n = data[e + 2] if e + 2 < len(data) else 0
+            
+            u = o << 16 | l << 8 | n
+            F = [
+                (u >> 18) & 63,
+                (u >> 12) & 63,
+                (u >> 6) & 63,
+                u & 63
+            ]
+            
+            padding = 0 if len(data) - e >= 3 else 3 - (len(data) - e)
+            
+            for f in range(4 - padding):
+                result.append(full_charset[F[f]])
+            
+            for _ in range(padding):
+                result.append("=")
+        
+        return "".join(result)
+    
+    def _decrypt_data(self, data: List[int], key_str: str) -> List[int]:
+        """数据解密"""
+        class OptimizedDecryptor:
+            def __init__(self):
+                self.const = 1013904243
+                self.n_mapping = {4: 3, 5: 0, 6: 1}
+            
+            def single_decrypt(self, m, x, a, idx, n, key, sign=1):
+                n_val = self.n_mapping.get(n, n)
+                k = (n_val ^ idx) % 4
+                number_7 = ((a >> 5) ^ (x << 2)) + ((x >> 3) ^ (a << 4))
+                number_12 = (m ^ x) + (a ^ key[k])
+                result = number_7 ^ number_12
+                return result
+            
+            def get_iv(self, e):
+                return e / self.const, e + self.const
+            
+            def decrypt(self, r, key):
+                length = len(r)
+                last_idx = length - 1
+                a = r[last_idx]
+                e = 0
+                iterations = 6 + 52 // length
+                
+                for _ in range(iterations):
+                    n, e = self.get_iv(e)
+                    n_int = int(n)
+                    
+                    for idx in range(last_idx):
+                        x = r[idx + 1]
+                        r[idx] = (r[idx] + self.single_decrypt(e, x, a, idx, n_int, key)) & 0xFFFFFFFF
+                        a = r[idx]
+                    
+                    x = r[0]
+                    r[last_idx] = (r[last_idx] + self.single_decrypt(e, x, a, last_idx, n_int, key)) & 0xFFFFFFFF
+                    a = r[last_idx]
+                
+                return r
+        
+        # 准备解密密钥
+        key_uint8 = [ord(char) for char in key_str]
+        key = self._convert_to_uint32_array(key_uint8, False)
+        
+        # 准备数据
+        data_uint32 = self._convert_to_uint32_array(data, True)
+        
+        # 解密
+        decryptor = OptimizedDecryptor()
+        decrypted_data = decryptor.decrypt(data_uint32.copy(), key)
+        
+        return self._uint32_array_to_uint8_array(decrypted_data)
+    
+    def generate_signature(self, qarams: str, md5_str: str, a1: str, 
+                          use_current_time: bool = True, 
+                          custom_timestamp: int = None) -> str:
         """
-        生成随机数组部分
+        生成签名
         
         Args:
-            seed (float): 随机数种子，如果不提供则使用随机数
+            qarams: 请求参数
+            md5_str: MD5字符串
+            a1: 设备标识
+            use_current_time: 是否使用当前时间
+            custom_timestamp: 自定义时间戳
             
         Returns:
-            list: 包含初始值和随机值的组合列表
+            生成的签名
         """
-        random_int = int(self.t * self.random_seed)
+        result_list = self.initial_list.copy()
         
-        arr = [
-            random_int & 255,
-            (random_int >> 8) & 255,
-            (random_int >> 16) & 255,
-            (random_int >> 24) & 255
-        ]
+        # 步骤1: 生成随机字节
+        random_int = int(self.t * random.random())
+        random_int=int(self.t*0.3645888406208544)
+        print("步骤1: 随机字节", random_int)
+        arr = [random_int & 255, random_int >> 8 & 255, 
+               random_int >> 16 & 255, random_int >> 24 & 255]
+        result_list.extend(arr)
+        print("步骤1: 生成随机字节", result_list, len(result_list))
+        # 步骤2: 时间戳相关计算
+        if custom_timestamp:
+            timestamp = custom_timestamp
+        else:
+            timestamp = int(time.time() * 1000)
+        timestamp=1764139892236
+        integer_part = int(timestamp / self.t)
+        fractional_part = (timestamp / self.t) - integer_part
+        init_num = int(fractional_part * self.t)
         
-        return self.initial_list + arr
-    
-    def calculate_timestamp_parts(self):
-        """
-        计算时间戳相关数值
-        
-        Args:
-            timestamp (int): 时间戳
-            
-        Returns:
-            tuple: (integer_part, fractional_part, init_num)
-        """
-        integer_part = int(self.timestamp / (self.t + 1))
-        fractional_part = (self.timestamp / (self.t + 1)) - integer_part
-        init_num = int(fractional_part * (self.t + 1))
-        
-        return integer_part, fractional_part, init_num
-    
-    def process_num_list_second(self, init_num):
-        """
-        处理num_list_second数组和结果计算
-        
-        Args:
-            init_num (int): 初始数值
-            
-        Returns:
-            tuple: (num_list_second, result)
-        """
-        right_move = 0
-        c = 0
-        result = 0
+        # 计算第二个数字列表
         num_list_second = []
+        right_move = 0
+        result = 0
         
         for i in range(4):
             a = init_num >> right_move
             b = a & 255
             num_list_second.append(b)
-            
             if i == 0:
                 c = 0
                 d = b
             else:
                 c += b
                 d = c & 255
-                
             right_move += 8
             result = d
-            
-        return num_list_second, result
-    
-    def calculate_fourth_num(self, integer_part, result):
-        """
-        计算fourth_num值
         
-        Args:
-            integer_part (int): 整数部分
-            result (int): 前面计算出的结果值
-            
-        Returns:
-            int: fourth_num值
-        """
-        init_num = integer_part
-        first_num = init_num & 255
-        second_num = init_num + result
-        third_num = second_num & 255
-        fourth_num = third_num + 1
+        # 计算第四个数字
+        fourth_num = 0
+        for i in range(4):
+            init_num = integer_part
+            first_num = init_num & 255
+            second_num = init_num + result
+            third_num = second_num & 255
+            fourth_num = third_num + 1
         
-        return fourth_num
-    
-    def generate_x_s(self):
-        """
-        生成完整的x-s值列表
-        
-        Args:
-            timestamp (int): 时间戳，如果不提供则使用当前时间
-            random_seed (float): 随机数种子，可选
-            
-        Returns:
-            list: 完整的x-s值列表
-        """
-        
-        # 生成基础列表
-        result_list = self.generate_random_array()
-        
-        # 计算时间戳相关值
-        integer_part, fractional_part, init_num = self.calculate_timestamp_parts()
-        
-        # 处理num_list_second
-        num_list_second, result = self.process_num_list_second(init_num)
-        
-        # 计算fourth_num
-        fourth_num = self.calculate_fourth_num(integer_part, result)
-        
-        # 添加异或处理后的值
+        # 添加计算结果
         result_list.append(fourth_num ^ 41)
         for index, value in enumerate(num_list_second):
             if index == 0:
                 continue
             result_list.append(value ^ 41)
         
-        # 添加固定结尾
-        result_list += [179, 40, 41, 41]
-
-
+        # 步骤3: 添加固定后缀
+        result_list.extend(self.fixed_suffix)
         
-        return result_list
+        # 步骤4: 添加时间相关字节
+        init_part = int((0.18809002079069614) * (self.t + 1))
+        for i in range(8):
+            result_num = init_part & 255
+            init_part = init_part >> 8
+            result_list.append(result_num)
+        print( "步骤4: 添加时间相关字节",result_list,len(result_list))
+        # 步骤5: 添加固定值1
+        init_part = 1
+        for i in range(4):
+            result_num = init_part & 255
+            init_part = init_part >> 8
+            result_list.append(result_num)
+        print( "步骤4: 添加固定值1",result_list,len(result_list))
+        # 步骤6: 添加随机数
+        init_part = random.randint(150, 200)
+        for i in range(4):
+            result_num = init_part & 255
+            init_part = init_part >> 8
+            result_list.append(result_num)
+        print( "步骤5: 添加随机数",result_list,len(result_list))
+        # 步骤7: 添加参数长度
+        init_part = len(qarams)
+        for i in range(4):
+            result_num = init_part & 255
+            init_part = init_part >> 8
+            result_list.append(result_num)
+        print( "步骤6: 添加参数长度",result_list,len(result_list))
+        # 步骤8: 添加MD5相关字节
+        for i in range(0, len(md5_str), 2):
+            pair = md5_str[i:i+2]
+            result_list.append(int(pair, 16) ^ result_list[4])
+            if i == 14:
+                break
+        print( "步骤7: 添加MD5相关字节",result_list,len(result_list))
+        # 步骤9: 添加设备标识和固定web标识
+        a1_byte_array = list(a1.encode('utf-8'))
+        result_list = result_list + [52] + a1_byte_array + self.fixed_web
+        print( "步骤8: 添加设备标识和固定web标识",result_list,len(result_list))
+        # 步骤10: 添加固定字节
+        result_list.extend([1, result_list[4] ^ 115] + self.fixed_bytes)
+        
+        # 步骤11: 数据解密
+        decrypted_data = self._decrypt_data(result_list, self.encryption_key)
+        
+        # 步骤12: Base64编码
+        base64_result = self._base64_encode(decrypted_data, self.base64_charset)
+        
+        return f"mns0201_{base64_result}"
+
 
 # 使用示例
 if __name__ == "__main__":
-    generator = XSGenerator()
+    # 创建生成器实例
+    generator = XHSSignatureGenerator()
     
-    # 使用默认参数生成
-    x_s_result = generator.generate_x_s()
-    print("默认生成结果:", x_s_result)
+    # 准备参数
+    qarams='/api/sns/web/v1/homefeed{"cursor_score": "","num": 39,"refresh_type": 1,"note_index": 33,"unread_begin_note_id": "","unread_end_note_id": "","unread_note_count": 0,"category": "homefeed_recommend","search_key": "","need_num": 14,"image_formats": ["jpg","webp","avif"],"need_filter_image": false}'
+    md5_str='b5c8461d9b11f34d56d087d95db75a6b'
+
+    a1='19ab462768dbnostuyyqujnz1j5fyrt8egmfrrr1n50000440764'
     
-    # 使用指定的时间戳和随机种子生成（复现原始代码结果）
-    x_s_result_fixed = generator.generate_x_s()
-    print("固定参数生成结果:", x_s_result_fixed)
+    # 生成签名
+    signature = generator.generate_signature(qarams, md5_str, a1)
+    print(f"生成的签名: {signature}")
+    
+    # 也可以使用自定义时间戳
+    # custom_timestamp = int(time.time() * 1000) - 1000  # 1秒前的时间
+    # signature = generator.generate_signature(qarams, md5_str, a1, use_current_time=False, custom_timestamp=custom_timestamp)
